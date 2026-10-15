@@ -1,0 +1,71 @@
+{
+  "generated_at_utc": "2026-10-15T11:03:34+00:00",
+  "source": "Twelve Data",
+  "interval": "5min",
+  "results": [
+    {
+      "symbol": "NVDL",
+      "status": "觀察中",
+      "bar_time_et": "2026-10-14 15:55",
+      "close": 34.315,
+      "ema20": 34.112,
+      "vwap": 34.692,
+      "volume_ratio": 3.45,
+      "breakout": 34.36,
+      "entry_reference": 34.37,
+      "stop_reference": 34.13,
+      "target_1_5R": 34.73,
+      "target_2R": 34.85,
+      "atr14": 0.157,
+      "signal": false
+    },
+    {
+      "symbol": "TSLL",
+      "status": "候選進場",
+      "bar_time_et": "2026-10-14 15:55",
+      "close": 9.575,
+      "ema20": 9.483,
+      "vwap": 9.534,
+      "volume_ratio": 2.2,
+      "breakout": 9.54,
+      "entry_reference": 9.55,
+      "stop_reference": 9.48,
+      "target_1_5R": 9.66,
+      "target_2R": 9.69,
+      "atr14": 0.044,
+      "signal": true
+    },
+    {
+      "symbol": "MSTU",
+      "status": "觀察中",
+      "bar_time_et": "2026-10-14 15:55",
+      "close": 34.1,
+      "ema20": 33.857,
+      "vwap": 35.425,
+      "volume_ratio": 2.69,
+      "breakout": 34.04,
+      "entry_reference": 34.05,
+      "stop_reference": 33.7,
+      "target_1_5R": 34.57,
+      "target_2R": 34.75,
+      "atr14": 0.232,
+      "signal": false
+    },
+    {
+      "symbol": "AMDL",
+      "status": "觀察中",
+      "bar_time_et": "2026-10-14 15:55",
+      "close": 67.99,
+      "ema20": 68.068,
+      "vwap": 70.161,
+      "volume_ratio": 2.53,
+      "breakout": 68.43,
+      "entry_reference": 68.44,
+      "stop_reference": 67.74,
+      "target_1_5R": 69.49,
+      "target_2R": 69.84,
+      "atr14": 0.468,
+      "signal": false
+    }
+  ]
+}
