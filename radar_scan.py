@@ -1,5 +1,5 @@
 import os, json, math, urllib.parse, urllib.request
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from zoneinfo import ZoneInfo
 
 SYMBOLS = ('NVDL','TSLL','MSTU','AMDL')
@@ -53,10 +53,16 @@ def analyze(symbol,bars):
 
 def main():
     if not KEY: raise SystemExit('Missing TWELVEDATA_API_KEY')
+    results=[]
     for symbol in SYMBOLS:
         try:
             result=analyze(symbol,fetch(symbol))
-            print(json.dumps(result,ensure_ascii=False))
         except Exception as exc:
-            print(json.dumps({'symbol':symbol,'status':'API 錯誤','error':str(exc)},ensure_ascii=False))
+            result={'symbol':symbol,'status':'API 錯誤','error':str(exc)}
+        results.append(result)
+        print(json.dumps(result,ensure_ascii=False))
+    payload={'generated_at_utc':datetime.now(timezone.utc).isoformat(timespec='seconds'),'source':'Twelve Data','interval':'5min','results':results}
+    with open('radar.json','w',encoding='utf-8') as f:
+        json.dump(payload,f,ensure_ascii=False,indent=2)
+    print('Saved radar.json')
 if __name__=='__main__': main()
