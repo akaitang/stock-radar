@@ -5,7 +5,11 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
+
+concurrency:
+  group: etf-radar
+  cancel-in-progress: false
 
 jobs:
   run-radar:
@@ -14,6 +18,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          persist-credentials: true
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -24,3 +30,16 @@ jobs:
         env:
           TWELVEDATA_API_KEY: ${{ secrets.TWELVEDATA_API_KEY }}
         run: python radar_scan.py
+
+      - name: Save radar results
+        run: |
+          test -f radar.json
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add radar.json
+          if ! git diff --cached --quiet; then
+            git commit -m "Update ETF radar results"
+            git push
+          else
+            echo "No changes to radar.json"
+          fi
