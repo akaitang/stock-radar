@@ -1,11 +1,16 @@
-
 name: Run ETF Radar
 
 on:
   workflow_dispatch:
+  schedule:
+    # UTC 13:00-21:59 covers US regular market hours in both DST and standard time.
+    # The market-hours guard below prevents scans outside the actual session.
+    - cron: '0,30 13-21 * * 1-5'
 
 permissions:
   contents: write
+  pages: write
+  id-token: write
 
 concurrency:
   group: etf-radar
@@ -14,32 +19,78 @@ concurrency:
 jobs:
   run-radar:
     runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
+      - name: Check US regular market hours
+        id: market
+        shell: bash
+        run: |
+          python - <<'PY'
+          import datetime, os, zoneinfo
+          now = datetime.datetime.now(zoneinfo.ZoneInfo('America/New_York'))
+          minutes = now.hour * 60 + now.minute
+          allowed = now.weekday() < 5 and 9 * 60 + 30 <= minutes < 16 * 60
+          # Manual runs remain available outside market hours.
+          if os.environ.get('GITHUB_EVENT_NAME') == 'workflow_dispatch':
+              allowed = True
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
+              f.write(f'run={str(allowed).lower()}\n')
+          print('New York time:', now.isoformat(), 'Scan:', allowed)
+          PY
+
       - name: Checkout repository
+        if: steps.market.outputs.run == 'true'
         uses: actions/checkout@v4
         with:
           persist-credentials: true
 
       - name: Set up Python
+        if: steps.market.outputs.run == 'true'
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
 
-      - name: Analyze 5-minute ETF candles
+      - name: Scan ETFs
+        if: steps.market.outputs.run == 'true'
         env:
           TWELVEDATA_API_KEY: ${{ secrets.TWELVEDATA_API_KEY }}
         run: python radar_scan.py
 
-      - name: Save radar results
+      - name: Commit latest radar results
+        if: steps.market.outputs.run == 'true'
+        shell: bash
         run: |
-          test -f radar.json
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add radar.json
           if ! git diff --cached --quiet; then
-            git commit -m "Update ETF radar results"
+            git commit -m 'Update ETF radar results'
             git push
           else
-            echo "No changes to radar.json"
+            echo 'No radar changes to commit.'
           fi
+
+      - name: Configure Pages
+        if: steps.market.outputs.run == 'true'
+        uses: actions/configure-pages@v5
+
+      - name: Prepare Pages artifact
+        if: steps.market.outputs.run == 'true'
+        shell: bash
+        run: |
+          mkdir -p _site
+          cp index.html radar.json _site/
+
+      - name: Upload Pages artifact
+        if: steps.market.outputs.run == 'true'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+      - name: Deploy Pages
+        if: steps.market.outputs.run == 'true'
+        id: deployment
+        uses: actions/deploy-pages@v4
